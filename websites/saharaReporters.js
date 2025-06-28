@@ -2,7 +2,6 @@ import puppeteer from "puppeteer-extra";
 import StealthPlugin from "puppeteer-extra-plugin-stealth";
 import axios from "axios";
 import dotenv from "dotenv";
-import { executablePath } from "puppeteer";
 
 dotenv.config();
 const BASE_URL = process.env.FASTAPI_URL;
@@ -22,7 +21,7 @@ async function filterHeadlines(headlines) {
 export async function scrapeSaharaReporters() {
   const browser = await puppeteer.launch({
     headless: true, // run in headless mode (no visible UI)
-    executablePath: executablePath(),
+
     args: ["--no-sandbox", "--disable-setuid-sandbox"], // fix sandbox error on Linux
   });
 

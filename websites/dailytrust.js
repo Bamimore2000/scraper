@@ -2,7 +2,7 @@ import puppeteer from "puppeteer-extra";
 import StealthPlugin from "puppeteer-extra-plugin-stealth";
 import axios from "axios";
 const BASE_URL = process.env.FASTAPI_URL;
-import { executablePath } from "puppeteer";
+
 import dotenv from "dotenv";
 dotenv.config();
 
@@ -22,7 +22,7 @@ async function filterHeadlines(headlines) {
 export async function scrapeDailyTrust() {
   const browser = await puppeteer.launch({
     headless: true, // run in headless mode (no visible UI)
-    executablePath: executablePath(),
+
     args: ["--no-sandbox", "--disable-setuid-sandbox"], // fix sandbox error on Linux
   });
 
