@@ -1,0 +1,32 @@
+# .github/workflows/scrape.yml
+name: Hourly Puppeteer Scraper
+
+on:
+  schedule:
+    - cron: "0 * * * *" # Every hour on the hour
+
+jobs:
+  run-scraper:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run scraper with Puppeteer dependencies
+        run: |
+          # Puppeteer dependencies
+          sudo apt-get update
+          sudo apt-get install -y libatk1.0-0 libatk-bridge2.0-0 libcups2 libdrm2 libgbm1 libgtk-3-0 \
+          libnspr4 libnss3 libx11-xcb1 libxcomposite1 libxdamage1 libxrandr2 xdg-utils wget
+          # Run your script with Puppeteer flags to avoid sandbox issues
+          node --no-sandbox --disable-setuid-sandbox scripts/scrape.js
+        env:
+          MONGO_URI: ${{ secrets.MONGO_URI }}
