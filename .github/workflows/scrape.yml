@@ -20,6 +20,14 @@ jobs:
       - name: Install dependencies
         run: npm install
 
+      - name: Debug env
+        run: |
+          echo "MONGO_URI set: ${{ secrets.MONGO_URI != '' }}"
+          echo "TWITTER_API_KEY set: ${{ secrets.TWITTER_API_KEY != '' }}"
+          echo "TWITTER_API_SECRET set: ${{ secrets.TWITTER_API_SECRET != '' }}"
+          echo "TWITTER_ACCESS_TOKEN set: ${{ secrets.TWITTER_ACCESS_TOKEN != '' }}"
+          echo "TWITTER_ACCESS_SECRET set: ${{ secrets.TWITTER_ACCESS_SECRET != '' }}"
+
       - name: Run scraper with Puppeteer dependencies
         run: |
           sudo apt-get update
