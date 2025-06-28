@@ -24,11 +24,6 @@ export async function scrapeVanguard() {
   });
 
   const page = await browser.newPage();
-
-  // // Emulate a mobile device (iPhone 12)
-  // const iPhone = puppeteer.devices["iPhone 12"];
-  // await page.emulate(iPhone);
-
   await page.goto("https://punchng.com/topics/news/", {
     waitUntil: "networkidle2",
     timeout: 60000,
