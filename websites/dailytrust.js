@@ -2,6 +2,7 @@ import puppeteer from "puppeteer-extra";
 import StealthPlugin from "puppeteer-extra-plugin-stealth";
 import axios from "axios";
 const BASE_URL = process.env.FASTAPI_URL;
+import { executablePath } from "puppeteer";
 import dotenv from "dotenv";
 dotenv.config();
 

@@ -2,6 +2,7 @@ import puppeteer from "puppeteer-extra";
 import StealthPlugin from "puppeteer-extra-plugin-stealth";
 import axios from "axios";
 import dotenv from "dotenv";
+import { executablePath } from "puppeteer";
 
 dotenv.config();
 puppeteer.use(StealthPlugin());
