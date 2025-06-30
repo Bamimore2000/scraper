@@ -7,6 +7,7 @@ import { scrappers } from "./websites/scrapper.js";
 import Article from "./models/article_model.js";
 import { normalizeDatesInItems } from "./utils/map.js";
 import { TwitterApi } from "twitter-api-v2";
+import { shortenUrl } from "./utils/tinyurl.js";
 
 dotenv.config();
 
@@ -18,23 +19,43 @@ const twitterClient = new TwitterApi({
   accessSecret: process.env.TWITTER_ACCESS_SECRET,
 });
 
-// Compose and post batch tweet
+// ...existing code...
+
 async function postBatchToTwitter(newArticles) {
   if (!newArticles.length) return;
 
-  const headlines = newArticles
-    .slice(0, 3)
-    .map((a) => `• ${a.title}`)
-    .join("\n");
+  // Shorten URLs in parallel (limit to 3)
+  const articlesWithShortLinks = await Promise.all(
+    newArticles.slice(0, 3).map(async (a) => {
+      const shortUrl = await shortenUrl(a.link);
+      return { ...a, shortUrl };
+    })
+  );
 
-  const message = `🛡️ New security news entries:\n${headlines}\n\nRead more at https://securenaija.com`;
+  let articlesToPost = [...articlesWithShortLinks];
 
-  try {
-    await twitterClient.v2.tweet(message);
-    console.log("🐦 Posted batch tweet.");
-  } catch (err) {
-    console.error("❌ Error posting batch tweet:", err);
+  while (articlesToPost.length) {
+    const headlines = articlesToPost
+      .map((a) => `• ${a.title} [${a.shortUrl}]`)
+      .join("\n");
+
+    const message = `🛡️ New security news entries:\n${headlines}`;
+
+    if (message.length <= 280) {
+      try {
+        await twitterClient.v2.tweet(message);
+        console.log("🐦 Posted batch tweet.");
+      } catch (err) {
+        console.error("❌ Error posting batch tweet:", err);
+      }
+      return;
+    }
+
+    // Remove the last headline if too long
+    articlesToPost.pop();
   }
+
+  console.warn("⚠️ Could not fit any headlines within tweet limit.");
 }
 
 // Save articles to MongoDB and track new ones
@@ -92,6 +113,7 @@ try {
   await runAllScrapers();
   await mongoose.connection.close();
   console.log("✅ Script finished and DB connection closed.");
+  process.exit(0); // Force exit
 } catch (err) {
   console.error("❌ Script failed:", err);
   process.exit(1);

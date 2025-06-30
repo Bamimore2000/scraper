@@ -66,7 +66,6 @@ export async function scrapePunch() {
   for (const item of filteredHeadlines) {
     try {
       await page.goto(item.link, { waitUntil: "networkidle2" });
-
       const data = await page.evaluate(() => {
         const titleEl = document.querySelector(".entry-heading");
         const imageEl = document.querySelector(".entry-thumbnail-wrapper img");
