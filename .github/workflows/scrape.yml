@@ -20,6 +20,14 @@ jobs:
       - name: Install dependencies
         run: npm install
 
+      - name: Debug env
+        run: |
+          [ -n "${{ secrets.MONGO_URI }}" ] && echo "MONGO_URI set: true" || echo "MONGO_URI set: false"
+          [ -n "${{ secrets.TWITTER_API_KEY }}" ] && echo "TWITTER_API_KEY set: true" || echo "TWITTER_API_KEY set: false"
+          [ -n "${{ secrets.TWITTER_API_SECRET }}" ] && echo "TWITTER_API_SECRET set: true" || echo "TWITTER_API_SECRET set: false"
+          [ -n "${{ secrets.TWITTER_ACCESS_TOKEN }}" ] && echo "TWITTER_ACCESS_TOKEN set: true" || echo "TWITTER_ACCESS_TOKEN set: false"
+          [ -n "${{ secrets.TWITTER_ACCESS_SECRET }}" ] && echo "TWITTER_ACCESS_SECRET set: true" || echo "TWITTER_ACCESS_SECRET set: false"
+
       - name: Run scraper with Puppeteer dependencies
         run: |
           sudo apt-get update
@@ -32,4 +40,5 @@ jobs:
           TWITTER_API_KEY: ${{ secrets.TWITTER_API_KEY }}
           TWITTER_API_SECRET: ${{ secrets.TWITTER_API_SECRET }}
           TWITTER_ACCESS_TOKEN: ${{ secrets.TWITTER_ACCESS_TOKEN }}
-          TWITTER_ACCESS_TOKEN_SECRET: ${{ secrets.TWITTER_ACCESS_TOKEN_SECRET }}
+          TWITTER_ACCESS_SECRET: ${{ secrets.TWITTER_ACCESS_SECRET }} # ✅ corrected
+
