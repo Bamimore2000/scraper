@@ -1,10 +1,10 @@
 import puppeteer from "puppeteer-extra";
 import StealthPlugin from "puppeteer-extra-plugin-stealth";
 import axios from "axios";
-const BASE_URL = process.env.FASTAPI_URL;
 
 import dotenv from "dotenv";
 dotenv.config();
+const BASE_URL = process.env.FASTAPI_URL;
 
 puppeteer.use(StealthPlugin());
 async function filterHeadlines(headlines) {

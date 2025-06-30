@@ -26,36 +26,73 @@ async function postBatchToTwitter(newArticles) {
 
   // Shorten URLs in parallel (limit to 3)
   const articlesWithShortLinks = await Promise.all(
-    newArticles.slice(0, 3).map(async (a) => {
+    newArticles.slice(0, 6).map(async (a) => {
+      // allow up to 6 so we can split
       const shortUrl = await shortenUrl(a.link);
       return { ...a, shortUrl };
     })
   );
 
-  let articlesToPost = [...articlesWithShortLinks];
+  // Footer message
+  const footer = "\nVisit securenaija.com for more";
 
-  while (articlesToPost.length) {
-    const headlines = articlesToPost
+  // Try to create 1 or 2 tweets to fit all headlines
+  // 1st: try all in 1 tweet, if too long split in two roughly equal parts
+
+  // Helper to build tweet message
+  const buildTweet = (articles) => {
+    const headlines = articles
       .map((a) => `• ${a.title} [${a.shortUrl}]`)
       .join("\n");
+    return `🛡️ New security news entries:\n${headlines}${footer}`;
+  };
 
-    const message = `🛡️ New security news entries:\n${headlines}`;
-
-    if (message.length <= 280) {
-      try {
-        await twitterClient.v2.tweet(message);
-        console.log("🐦 Posted batch tweet.");
-      } catch (err) {
-        console.error("❌ Error posting batch tweet:", err);
-      }
-      return;
+  // First, try all in one tweet
+  let tweet1 = buildTweet(articlesWithShortLinks);
+  if (tweet1.length <= 280) {
+    try {
+      await twitterClient.v2.tweet(tweet1);
+      console.log("🐦 Posted 1 batch tweet.");
+    } catch (err) {
+      console.error("❌ Error posting batch tweet:", err);
     }
-
-    // Remove the last headline if too long
-    articlesToPost.pop();
+    return;
   }
 
-  console.warn("⚠️ Could not fit any headlines within tweet limit.");
+  // If too long, split roughly in half and try two tweets
+  const half = Math.ceil(articlesWithShortLinks.length / 2);
+  let tweetPart1 = buildTweet(articlesWithShortLinks.slice(0, half));
+  let tweetPart2 = buildTweet(articlesWithShortLinks.slice(half));
+
+  // Check lengths and adjust if necessary by dropping headlines from end
+  while (
+    tweetPart1.length > 280 &&
+    articlesWithShortLinks.slice(0, half).length
+  ) {
+    articlesWithShortLinks.splice(half - 1, 1); // remove last from first half
+    tweetPart1 = buildTweet(articlesWithShortLinks.slice(0, half - 1));
+  }
+  while (tweetPart2.length > 280 && articlesWithShortLinks.slice(half).length) {
+    articlesWithShortLinks.splice(articlesWithShortLinks.length - 1, 1); // remove last from second half
+    tweetPart2 = buildTweet(articlesWithShortLinks.slice(half));
+  }
+
+  try {
+    if (tweetPart1.length <= 280 && tweetPart1.trim().length > 0) {
+      await twitterClient.v2.tweet(tweetPart1);
+      console.log("🐦 Posted first batch tweet.");
+    } else {
+      console.warn("⚠️ Could not fit first tweet within limit.");
+    }
+    if (tweetPart2.length <= 280 && tweetPart2.trim().length > 0) {
+      await twitterClient.v2.tweet(tweetPart2);
+      console.log("🐦 Posted second batch tweet.");
+    } else {
+      console.warn("⚠️ Could not fit second tweet within limit or no content.");
+    }
+  } catch (err) {
+    console.error("❌ Error posting batch tweets:", err);
+  }
 }
 
 // Save articles to MongoDB and track new ones
